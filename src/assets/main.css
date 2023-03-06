@@ -1,0 +1,5 @@
+@import './base.css';
+.background {
+    background: rgb(38, 33, 135);
+    background: linear-gradient(180deg, rgba(38, 33, 135, 1) 40%, rgba(38, 33, 135, 1) 59%, rgba(38, 33, 135, 1) 89%, rgba(15, 0, 83, 1) 100%);
+}
