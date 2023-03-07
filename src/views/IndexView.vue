@@ -1,231 +1,145 @@
 <template>
   <SlideAnime />
-  <main>
-    <h1>Anime</h1>
+  <h1 class="set-location">REVIEW</h1>
+  <div v-for="(game, index) in allgameData" :key="index">
+    <div class="container">
+      <div class="flex-items"></div>
+      <div class="flex-items set-location">
+        <v-card class="mx-auto set-location" color="purple" elevation="20" max-width="750">
+          <div class="d-flex justify-between">
+            <v-card-title class="flex-grow-1 flex-column align-start">
+              <div class="text-h5">{{ game.data.gameTitle }}</div>
+              <div class="text-h6 font-weight-thin"></div>
 
-    <form @submit.prevent="searchAnime">
-      <input
-        type="text"
-        placeholder="Search for an anime..."
-        v-model="query"
-        @input="handleInput"
-      />
-      <button type="submit" class="button">Search</button>
-    </form>
-    <!-- ------------------------------------------------------------- -->
-    <div v-if="search_results.length > 0">
-      <div v-for="anime in search_results" :key="anime" class="result">
-        <img :src="anime.images.jpg.image_url" />
-        <div class="details">
-          <h3>{{ anime.title }}</h3>
-          <p :title="anime.synopsis" v-if="anime.synopsis">{{ anime.synopsis.slice(0, 120) }}...</p>
-          <p></p>
-          <span class="flex-1"></span>
-          <button @click="addAnime(anime)" class="button">Add to My Anime</button>
-        </div>
-      </div>
-    </div>
-    <!-- -------------------------------------------------------------------------------------- -->
-    <div class="myanime" v-if="my_anime.length > 0">
-      <h2>My Anime</h2>
+              <div class="text-h6 font-weight-thin">
+                วันวางจำหน่าย : {{ game.data.gameReleseDate }}
+              </div>
+              <div class="text-h7 font-weight-thin">{{ game.data.gameGenre }}</div>
+              <div class="text-h7 font-weight-thin">{{ game.data.gamePlaform }}</div>
+            </v-card-title>
 
-      <div v-for="anime in my_anime_asc" :key="anime" class="anime">
-        <img :src="anime.image" />
-        <h3>{{ anime.title }}</h3>
-        <div class="flex-1"></div>
-        <span class="episodes">{{ anime.watched_episodes }} / {{ anime.total_episodes }}</span>
-        <button
-          v-if="anime.total_episodes !== anime.watched_episodes"
-          @click="increaseWatch(anime)"
-          class="button"
-        >
-          +
-        </button>
-        <button v-if="anime.watched_episodes > 0" @click="decreaseWatch(anime)" class="button">
-          -
-        </button>
+            <v-img
+              contain
+              height="125px"
+              :src="game.data.gameImage"
+              style="flex-basis: 125px"
+              class="flex-grow-0"
+            ></v-img>
+          </div>
+
+          <v-divider></v-divider>
+
+          <v-card-actions class="pa-4">
+            Rate this game
+
+            <v-spacer></v-spacer>
+
+            <span class="text-grey-lighten-2 text-caption me-2">
+              {{ game.data.rating }}
+            </span>
+
+            <div>
+              <v-rating
+                v-model="gameRating[index]"
+                color="white"
+                active-color="yellow-accent-4"
+                half-increments
+                clearable
+                hover
+                @input="submitRating(game.id, gameRating[index])"
+                size="18"
+              ></v-rating>
+            </div>
+          </v-card-actions>
+        </v-card>
       </div>
+      <div class="flex-items"></div>
     </div>
-  </main>
+  </div>
 </template>
+
 <script setup>
 import SlideAnime from '@/components/SlideAnime.vue'
-import { ref, onMounted, computed } from 'vue'
-const query = ref('')
-const my_anime = ref([])
-const search_results = ref([])
-const my_anime_asc = computed(() => {
-  return my_anime.value.sort((a, b) => {
-    return a.title.localeCompare(b.title)
+import { ref, onMounted } from 'vue'
+import { db } from '../main'
+import { collection, getDocs, doc, updateDoc } from '@firebase/firestore'
+
+const allgameData = ref([])
+const gameRating = ref([])
+
+async function show() {
+  allgameData.value = []
+  const querySnapshot = await getDocs(collection(db, 'Game'))
+  querySnapshot.forEach((doc) => {
+    const myDoc = { id: doc.id, data: doc.data() }
+    console.log(doc.id, ' => ', doc.data())
+    console.log(myDoc)
+    allgameData.value.push(myDoc)
+    gameRating.value.push(myDoc.data.rating)
   })
-})
-const searchAnime = () => {
-  const url = `https://api.jikan.moe/v4/anime?q=${query.value}`
-  fetch(url)
-    .then((res) => res.json())
-    .then((data) => {
-      search_results.value = data.data
+}
+
+function submitRating(gameID, rating) {
+  console.log('Game ID:', gameID)
+  console.log('Rating:', rating)
+
+  const gameRef = doc(db, 'Game', gameID)
+
+  updateDoc(gameRef, {
+    rating: rating
+  })
+    .then(() => {
+      console.log('Rating updated successfully')
+    })
+    .catch((error) => {
+      console.error('Error updating rating:', error)
     })
 }
-const handleInput = (e) => {
-  if (!e.target.value) {
-    search_results.value = []
-  }
-}
-const addAnime = (anime) => {
-  search_results.value = []
 
-  query.value = ''
-  my_anime.value.push({
-    id: anime.mal_id,
-    title: anime.title,
-    image: anime.images.jpg.image_url,
-    total_episodes: anime.episodes,
-    watched_episodes: 0
-  })
-  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
-}
-const increaseWatch = (anime) => {
-  anime.watched_episodes++
-  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
-}
-const decreaseWatch = (anime) => {
-  anime.watched_episodes--
-  localStorage.setItem('my_anime', JSON.stringify(my_anime.value))
-}
-onMounted(() => {
-  my_anime.value = JSON.parse(localStorage.getItem('my_anime')) || []
-})
+onMounted(show)
 </script>
-<style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Fira Sans', sans-serif;
+
+<style scoped>
+.flex-container {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: normal;
+  align-items: normal;
+  align-content: normal;
 }
-body {
-  background-color: #eee;
+
+.flex-items:nth-child(1) {
+  display: block;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  order: 0;
 }
-main {
-  margin: 0 auto;
-  max-width: 768px;
-  padding: 1.5rem;
+
+.flex-items:nth-child(2) {
+  display: block;
+  flex-grow: 4;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  order: 0;
 }
+
+.flex-items:nth-child(3) {
+  display: block;
+  flex-grow: 1;
+  flex-shrink: 1;
+  flex-basis: auto;
+  align-self: auto;
+  order: 0;
+}
+.set-location {
+  margin: 50px 50px;
+}
+
 h1 {
-  text-align: center;
-  margin-bottom: 1.5rem;
-}
-form {
-  display: flex;
-  max-width: 480px;
-  margin: 0 auto 1.5rem;
-}
-form input {
-  appearance: none;
-  outline: none;
-  border: none;
-  background: white;
-  display: block;
-  color: #888;
-  font-size: 1.125rem;
-  padding: 0.5rem 1rem;
-  width: 100%;
-}
-.button {
-  appearance: none;
-  outline: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  display: block;
-  padding: 0.5rem 1rem;
-  background-image: linear-gradient(to right, deeppink 50%, darkviolet 50%);
-  background-size: 200%;
-  color: white;
-  font-size: 1.125rem;
-  font-weight: bold;
-  text-transform: uppercase;
-  transition: 0.4s;
-}
-.button:hover {
-  background-position: right;
-}
-.results {
-  background-color: #fff;
-  border-radius: 0.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-height: 480px;
-  overflow-y: scroll;
-  margin-bottom: 1.5rem;
-}
-.result {
-  display: flex;
-  margin: 1rem;
-  padding: 1rem;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  transition: 0.4s;
-}
-.result img {
-  width: 100px;
-  border-radius: 1rem;
-  margin-right: 1rem;
-}
-.details {
-  flex: 1 1 0%;
-  display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-}
-.details h3 {
-  font-size: 1.25rem;
-  margin-bottom: 0.5rem;
-}
-.details p {
-  font-size: 0.875rem;
-  margin-bottom: 1rem;
-}
-.details .button {
-  margin-left: auto;
-}
-.flex-1 {
-  display: block;
-  flex: 1 1 0%;
-}
-.myanime h2 {
-  color: #888;
-  font-weight: 400;
-  margin-bottom: 1.5rem;
-}
-.myanime .anime {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1.5rem;
-  background-color: #fff;
-  padding: 1rem;
-  border-radius: 0.5rem;
-  box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
-}
-.anime img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 1rem;
-  margin-right: 1rem;
-}
-.anime h3 {
-  color: #888;
-  font-size: 1.125rem;
-}
-.anime .episodes {
-  margin-right: 1rem;
-  color: #888;
-}
-.anime .button:first-of-type {
-  margin-right: 0.5rem;
-}
-.anime .button:last-of-type {
-  margin-right: 0;
+  size: 50px;
 }
 </style>

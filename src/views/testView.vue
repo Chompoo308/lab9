@@ -99,7 +99,7 @@ onMounted(() => {
   my_anime.value = JSON.parse(localStorage.getItem('my_anime')) || []
 })
 </script>
-<style>
+<style scoped>
 * {
   margin: 0;
   padding: 0;

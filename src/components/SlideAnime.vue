@@ -14,9 +14,9 @@ export default {
   data() {
     return {
       colors: [
-        'https://webtoons-static.pstatic.net/image/pc/home/og_th.jpg?dt=2021111201',
-        'https://www.thumbsup.in.th/wp-content/uploads/2019/11/76990132_2399434220167717_3765209975123607552_n-1024x683.png',
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT9kmxX5lwvAkelXvsiSYtx76OTCEB4oS8OITs-W3P9ib0X3eZyGpatGpUtH1MvvbCENHU&usqp=CAU'
+        'https://img.4gamers.com.tw/ckfinder-th/image2/auto/2021-10/roblox-211001-143158.jpg?versionId=gAUtSftpwVK1RfDh5I3l8rcn0zUzDpy1',
+        'https://s.isanook.com/ga/0/ud/190/953283/02.jpg',
+        'https://cdn.tigthai.com/imguploads/202001/10/0086580001578652224536_Mobile_This_Week_100120_main.jpg'
       ],
       slides: ['First', 'Second', 'Third']
     }

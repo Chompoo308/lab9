@@ -20,19 +20,32 @@
           ></path>
           <circle cx="12" cy="13" r="4"></circle>
         </svg>
-        <strong>AFTER LIFE TOON</strong
+        <strong>AFTER LIFE REVIEW</strong
         ><v-tabs fixed-tabs height="50px">
           <router-link to="/"><v-tab> หน้าแรก </v-tab></router-link>
-          <v-tab> หมวดหมู่ </v-tab>
-          <v-tab> ยอดนิยม </v-tab>
         </v-tabs>
       </a>
-      <router-link to="/login"><v-btn> LOGIN </v-btn></router-link>
+
+      <router-link to="/"><v-btn> LOGOUT </v-btn></router-link>
     </div>
   </div>
 </template>
 
-<script></script>
+<script>
+export default {
+  data() {
+    return {
+      user: ''
+    }
+  },
+  mounted() {
+    if (localStorage.activeUser) {
+      let activeUser = localStorage.activeUser
+      this.user = JSON.parse(activeUser)
+    }
+  }
+}
+</script>
 
 <style scoped>
 .right {

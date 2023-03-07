@@ -69,3 +69,13 @@ app.use(vuetify)
 
 app.mount('#app')
 
+if (localStorage.user === undefined) {
+  let users = [
+    {
+      username: 'admin',
+      email: 'admin@gmail.com',
+      password: 'admin'
+    },
+  ];
+  localStorage.setItem('users',JSON.stringify(users))
+}
